@@ -89,6 +89,10 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--c,var(--
 .intro-card b{color:var(--ink)}
 .intro-img{display:block;width:100%;border-radius:var(--r);margin:18px 0 0;border:1.5px solid var(--line);cursor:zoom-in}
 
+.admin-entry{display:block;margin:28px auto 0;background:none;border:0;color:var(--soft);font-size:.9rem;padding:8px 12px;border-radius:var(--r);cursor:pointer}
+.admin-entry:hover{color:var(--ink);background:var(--lilac)}
+.admin-entry:focus-visible{outline:2px solid var(--green)}
+
 /* 確認頁 */
 .review{display:flex;flex-direction:column;gap:8px}
 .rv{display:block;width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-left:4px solid var(--c);border-radius:var(--r);padding:10px 14px;cursor:pointer;color:var(--ink)}
@@ -174,6 +178,7 @@ tr:last-child td{border-bottom:0}
       <img class="intro-img hidden" id="introImg" alt="行程說明">
       <div class="intro-card">共 <b>8</b> 題，大約 1 分鐘。之後想修改，用<b>同一個名字</b>再填一次就會覆蓋。</div>
       <button class="btn wide" type="button" id="startBtn">開始填寫</button>
+      <button type="button" class="admin-entry" id="toAdmin">🔒 管理後台</button>
       <div class="notice hidden" id="cfgNotice">尚未設定 Apps Script 網址，表單目前無法送出。</div>
     </div>
 
@@ -359,13 +364,16 @@ $("#planChips").innerHTML = CONFIG.PLANS.map((p, i) =>
 ).join("");
 
 /* ---------- 前台／後台切換（網址 #admin） ---------- */
-function route() {
-  const admin = location.hash === "#admin";
+function showView(admin) {
   $("#fill").classList.toggle("hidden", admin);
   $("#wrap").classList.toggle("hidden", !admin);
+  window.scrollTo(0, 0);
+  if (admin && $("#dash").classList.contains("hidden")) setTimeout(() => $("#pw").focus(), 50);
 }
-window.addEventListener("hashchange", route); route();
-$("#toForm").onclick = e => { e.preventDefault(); history.replaceState(null, "", location.pathname + location.search); route(); };
+// 舊網址 #admin 仍可用
+if (location.hash === "#admin") { history.replaceState(null, "", location.pathname + location.search); showView(true); }
+$("#toAdmin").onclick = () => showView(true);
+$("#toForm").onclick = e => { e.preventDefault(); showView(false); };
 
 /* ---------- 一題一頁 ---------- */
 const ORDER = ["intro", "name", "comp", "kids", "transport", "diet", "breakfast", "drink", "plan", "review", "done"];
