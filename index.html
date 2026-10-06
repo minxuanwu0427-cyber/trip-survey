@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F2E8">
+<title>出遊行前調查</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧳</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F2E8; --paper:#FBFAF4; --ink:#25402E; --soft:#6E7867; --line:#DEDACA;
+  --green:#5B8A55; --blue:#4F8CBC; --clay:#C78859; --sun:#EFBE4C;
+  /* 淡色（沿用名稱，後台統計卡也用這些） */
+  --mint:#E2EBD6; --sky:#DDEAF2; --peach:#F5E5D4; --butter:#F7EBC6; --lilac:#ECE8D8;
+  --accent:#4F8CBC; --danger:#C2553F; --r:6px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:light}}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);background:var(--bg);
+  background-image:radial-gradient(60% 40% at 10% 0%,rgba(91,138,85,.10),transparent 70%),
+                   radial-gradient(50% 35% at 100% 30%,rgba(79,140,188,.08),transparent 70%),
+                   radial-gradient(55% 40% at 0% 100%,rgba(199,136,89,.08),transparent 70%);
+  background-attachment:fixed;
+  font-family:"Nunito","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.hidden{display:none!important}
+button{font:inherit}
+
+/* ================= 手機填寫介面 ================= */
+.app{max-width:500px;margin:0 auto;min-height:100%;padding:0 20px 120px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:14px 0 10px;z-index:3}
+.top-row{display:flex;justify-content:space-between;align-items:baseline;font-size:.9rem;color:var(--soft);margin-bottom:8px}
+.top-row b{color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:12px}
+.progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--green);border-radius:3px;transition:width .3s ease}
+
+.step{display:none;padding-top:24px}
+.step.on{display:block}
+@media (prefers-reduced-motion:no-preference){
+  .step.on{animation:slide .28s ease-out}
+  @keyframes slide{from{opacity:0;transform:translateX(var(--dx,28px))}}
+}
+/* 筆刷題號（像 Day 1 標籤） */
+.qno{display:inline-block;position:relative;color:#fff;font-weight:900;font-size:1.05rem;padding:4px 20px 6px 16px;margin:0 0 14px -4px;isolation:isolate}
+.qno::before{content:"";position:absolute;inset:0;background:var(--c);z-index:-1;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50' preserveAspectRatio='none'%3E%3Cpath d='M7 9C24 3 58 6 108 3c7 1 9 6 8 12-1 9 1 18-2 27-30 4-66 5-105 3C3 36 2 25 3 17c0-4 1-7 4-8z'/%3E%3Cpath d='M112 14l7-3M113 30l6 1M1 21l-1 5' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50' preserveAspectRatio='none'%3E%3Cpath d='M7 9C24 3 58 6 108 3c7 1 9 6 8 12-1 9 1 18-2 27-30 4-66 5-105 3C3 36 2 25 3 17c0-4 1-7 4-8z'/%3E%3Cpath d='M112 14l7-3M113 30l6 1M1 21l-1 5' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.step h2{margin:0 0 6px;font-size:1.5rem;line-height:1.35;font-weight:900}
+.req{color:var(--danger);margin-left:4px}
+.hint{color:var(--soft);font-size:.98rem;margin:0 0 18px}
+
+input[type=text],input[type=number],input[type=password],textarea,select{
+  width:100%;font:inherit;font-size:17px;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:var(--r);padding:12px 14px}
+textarea{min-height:120px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--c,var(--green));box-shadow:0 0 0 3px rgba(91,138,85,.15)}
+::placeholder{color:#AFB3A5}
+
+.chips{display:flex;flex-direction:column;gap:10px}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips label{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 16px;border-radius:var(--r);border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-size:1.08rem;line-height:1.45}
+.chips label::before{content:"";flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid #BFC3B4;background:#fff}
+.chips input:checked+label{border-color:var(--c);background:var(--cl);font-weight:700}
+.chips input:checked+label::before{border-color:var(--c);background:var(--c);box-shadow:inset 0 0 0 4px #fff}
+.chips input:focus-visible+label{outline:2px solid var(--c);outline-offset:2px}
+.plan-desc{display:block;font-weight:400;color:var(--soft);font-size:.9rem}
+
+.sub{margin-top:14px;padding:14px;border-radius:var(--r);background:var(--cl);display:none}
+.sub.on{display:block}
+.sub label{font-size:.95rem;font-weight:700;display:block;margin-bottom:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:var(--danger);font-size:.95rem;font-weight:700;margin-top:12px;display:none}
+.step.invalid .err{display:block}
+
+.plan-img{display:block;width:100%;border-radius:var(--r);margin:0 0 16px;cursor:zoom-in;border:1.5px solid var(--line)}
+
+/* 開場 */
+.hero{position:relative;text-align:center;padding:48px 8px 8px}
+.hero h1{margin:0;text-wrap:balance;font-size:clamp(1.6rem,7.4vw,2.3rem);font-weight:900;line-height:1.25;letter-spacing:.03em}
+.hero .slogan{display:inline-flex;align-items:center;gap:10px;margin:10px 0 0;color:var(--ink);font-size:1.05rem}
+.hero .slogan::before,.hero .slogan::after{content:"";width:18px;height:12px;
+  background:linear-gradient(var(--sun),var(--sun)) 0 0/100% 2px no-repeat,linear-gradient(var(--sun),var(--sun)) 0 50%/70% 2px no-repeat,linear-gradient(var(--sun),var(--sun)) 0 100%/100% 2px no-repeat}
+.hero .slogan::after{transform:scaleX(-1)}
+.intro-card{background:var(--paper);border:1.5px solid var(--line);border-radius:var(--r);padding:16px 18px;margin:22px 0 18px;color:var(--soft);font-size:.98rem}
+.intro-card b{color:var(--ink)}
+.intro-img{display:block;width:100%;border-radius:var(--r);margin:18px 0 0;border:1.5px solid var(--line);cursor:zoom-in}
+
+/* 確認頁 */
+.review{display:flex;flex-direction:column;gap:8px}
+.rv{display:block;width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-left:4px solid var(--c);border-radius:var(--r);padding:10px 14px;cursor:pointer;color:var(--ink)}
+.rv small{display:block;color:var(--soft);font-size:.85rem}
+.rv span{font-weight:700}
+.rv span.none{color:#AFB3A5;font-weight:400}
+.rv:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+.done{text-align:center;background:var(--mint);border-radius:var(--r);padding:36px 22px;margin-top:24px}
+.done h2{margin:0 0 6px}
+
+/* 底部按鈕列 */
+.nav{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(to top,var(--bg) 75%,rgba(244,242,232,0));padding:18px 20px calc(14px + env(safe-area-inset-bottom,0px));z-index:4}
+.nav-in{max-width:460px;margin:0 auto;display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;font-weight:700;border:0;border-radius:var(--r);padding:14px 24px;cursor:pointer;background:var(--ink);color:#fff;font-size:1.08rem;min-height:54px}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.nav .next{flex:1}
+.nav .back{flex:none;padding:0 22px;white-space:nowrap}
+.btn.wide{width:100%}
+.notice{background:var(--peach);border-radius:var(--r);padding:12px 16px;margin-top:14px;font-size:.95rem}
+
+.lightbox{position:fixed;inset:0;background:rgba(25,35,28,.85);display:none;align-items:center;justify-content:center;padding:16px;z-index:10;cursor:zoom-out}
+.lightbox.on{display:flex}
+.lightbox img{max-width:100%;max-height:100%;border-radius:var(--r)}
+
+/* 題目顏色（依 Day 1／2／3 的綠、藍、橘輪替） */
+.c-green{--c:var(--green);--cl:var(--mint)}
+.c-blue{--c:var(--blue);--cl:var(--sky)}
+.c-clay{--c:var(--clay);--cl:var(--peach)}
+
+/* ================= 後台 ================= */
+.wrap{max-width:1100px;margin:0 auto;padding:20px 18px 64px}
+.back-link{display:inline-block;color:var(--soft);text-decoration:none;margin-bottom:8px}
+.login{max-width:360px;margin:40px auto;text-align:center}
+.login p{color:var(--soft)}
+.login .btn{margin-top:12px;width:100%}
+.adm-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.adm-head h2{margin:0;font-size:1.5rem}
+.adm-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+.adm-head .btn{min-height:0;padding:8px 16px;font-size:.95rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px}
+.stat{border-radius:var(--r);padding:14px 16px}
+.stat b{display:block;font-size:1.7rem;font-weight:700;line-height:1.2}
+.stat span{font-size:.9rem;color:var(--soft)}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.subtabs button{border:1.5px solid var(--line);background:var(--paper);color:var(--soft);padding:6px 16px;border-radius:var(--r);cursor:pointer}
+.subtabs button[aria-selected="true"]{border-color:var(--green);color:var(--ink);background:var(--mint);font-weight:700}
+.panel{background:var(--paper);border:1.5px solid var(--line);border-radius:var(--r);padding:16px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+td.wrap-cell{white-space:normal;min-width:160px}
+th{font-weight:700;background:#F0EEE2}
+tr:last-child td{border-bottom:0}
+.empty{color:var(--soft);text-align:center;padding:30px 10px}
+.qlist{display:grid;gap:8px}
+.qitem{display:flex;gap:12px;padding:10px 12px;border-radius:var(--r);background:#F3F1E7}
+.qitem .n{font-weight:700;min-width:5.5em}
+.qitem.blank{opacity:.55}
+.group{margin-bottom:14px}
+.group h4{margin:0 0 6px;font-size:1rem}
+.pill{display:inline-block;border-radius:4px;padding:2px 10px;margin:2px 4px 2px 0;background:var(--sky);font-size:.88rem}
+.wrap .err{display:block}
+</style>
+</head>
+<body>
+
+<!-- ========== 填寫（手機一題一頁） ========== -->
+<section class="app" id="fill">
+  <header class="top hidden" id="top">
+    <div class="top-row"><b id="topTitle"></b><span id="stepCount"></span></div>
+    <div class="progress"><i id="bar"></i></div>
+  </header>
+
+  <div id="steps">
+    <div class="step on" data-step="intro">
+      <div class="hero">
+        <h1 id="title"></h1>
+        <p class="slogan" id="subtitle"></p>
+      </div>
+      <img class="intro-img hidden" id="introImg" alt="行程說明">
+      <div class="intro-card">共 <b>8</b> 題，大約 1 分鐘。之後想修改，用<b>同一個名字</b>再填一次就會覆蓋。</div>
+      <button class="btn wide" type="button" id="startBtn">開始填寫</button>
+      <div class="notice hidden" id="cfgNotice">尚未設定 Apps Script 網址，表單目前無法送出。</div>
+    </div>
+
+    <div class="step c-green" data-step="name">
+      <span class="qno">Q1</span>
+      <h2><label for="f-name">你的名字</label><span class="req">*</span></h2>
+      <p class="hint">請用大家認得的名字</p>
+      <input type="text" id="f-name" autocomplete="name" enterkeyhint="next">
+      <div class="err">請填寫姓名</div>
+    </div>
+
+    <div class="step c-blue" data-step="comp">
+      <span class="qno">Q2</span>
+      <h2><label for="f-comp">攜伴姓名／綽號</label></h2>
+      <p class="hint">單人前往可直接按下一題。多人請用頓號分隔</p>
+      <input type="text" id="f-comp" placeholder="例：小美、阿凱" enterkeyhint="next">
+    </div>
+
+    <div class="step c-clay" data-step="kids">
+      <span class="qno">Q3</span>
+      <h2>有帶小朋友嗎？</h2>
+      <p class="hint">用來安排房間床位</p>
+      <div class="chips">
+        <input type="radio" name="kids" id="k2" value="沒帶小孩"><label for="k2">沒帶小孩</label>
+        <input type="radio" name="kids" id="k1" value="有帶小孩"><label for="k1">有帶小孩</label>
+      </div>
+      <div class="sub" id="kidsSub">
+        <div class="row2">
+          <div><label for="f-bed">佔床人數</label><input type="number" id="f-bed" min="0" inputmode="numeric" value="0"></div>
+          <div><label for="f-nobed">不佔床人數</label><input type="number" id="f-nobed" min="0" inputmode="numeric" value="0"></div>
+        </div>
+      </div>
+      <div class="err">請填寫小孩人數</div>
+    </div>
+
+    <div class="step c-green" data-step="transport">
+      <span class="qno">Q4</span>
+      <h2>預計怎麼過去？<span class="req">*</span></h2>
+      <p class="hint">方便安排共乘</p>
+      <div class="chips">
+        <input type="radio" name="transport" id="t1" value="自行開車，可載人"><label for="t1">自行開車，可在集合點載人</label>
+        <input type="radio" name="transport" id="t2" value="自行開車，不便載人"><label for="t2">自行開車，不方便多載人</label>
+        <input type="radio" name="transport" id="t3" value="高鐵台中站，需共乘"><label for="t3">搭到高鐵台中站，需要共乘</label>
+        <input type="radio" name="transport" id="t4" value="其他"><label for="t4">其他</label>
+      </div>
+      <div class="sub" id="seatsSub"><label for="f-seats">還有幾個空位？</label><input type="number" id="f-seats" min="1" inputmode="numeric"></div>
+      <div class="sub" id="otherSub"><label for="f-other">請說明</label><input type="text" id="f-other"></div>
+      <div class="err">請選擇前往方式並補上說明</div>
+    </div>
+
+    <div class="step c-blue" data-step="diet">
+      <span class="qno">Q5</span>
+      <h2><label for="f-diet">飲食禁忌或過敏</label></h2>
+      <p class="hint">例：不吃牛／甲殼類過敏／素食。沒有可直接按下一題</p>
+      <textarea id="f-diet"></textarea>
+    </div>
+
+    <div class="step c-clay" data-step="breakfast">
+      <span class="qno">Q6</span>
+      <h2>早餐習慣<span class="req">*</span></h2>
+      <p class="hint">決定要準備幾份早餐</p>
+      <div class="chips">
+        <input type="radio" name="breakfast" id="b1" value="完全不吃"><label for="b1">完全不吃</label>
+        <input type="radio" name="breakfast" id="b2" value="必須要吃"><label for="b2">必須要吃</label>
+        <input type="radio" name="breakfast" id="b3" value="都可以"><label for="b3">都可以，有人準備我就吃</label>
+      </div>
+      <div class="err">請選一個</div>
+    </div>
+
+    <div class="step c-green" data-step="drink">
+      <span class="qno">Q7</span>
+      <h2>酒水調查<span class="req">*</span></h2>
+      <p class="hint">決定要買多少酒</p>
+      <div class="chips">
+        <input type="radio" name="drink" id="d1" value="不喝酒"><label for="d1">完全不喝酒</label>
+        <input type="radio" name="drink" id="d2" value="喝！"><label for="d2">喝！🍻</label>
+      </div>
+      <div class="err">請選一個</div>
+    </div>
+
+    <div class="step c-blue" data-step="plan">
+      <span class="qno">Q8</span>
+      <h2>最後一天想走哪個行程？<span class="req">*</span></h2>
+      <p class="hint" id="planHint">點圖片可以放大看</p>
+      <img class="plan-img hidden" id="planImg" alt="最後一天行程方案說明">
+      <div class="chips" id="planChips"></div>
+      <div class="err">請選一個方案</div>
+    </div>
+
+    <div class="step" data-step="review">
+      <h2>確認一下答案</h2>
+      <p class="hint">要改哪一題，點那一題就能回去改</p>
+      <div class="review" id="review"></div>
+    </div>
+
+    <div class="step" data-step="done">
+      <div class="done">
+        <h2 id="doneTitle">收到了！</h2>
+        <p>之後想修改，用同一個名字再填一次就會覆蓋。</p>
+      </div>
+      <button class="btn ghost wide" type="button" id="again" style="margin-top:14px">修改我的答案</button>
+    </div>
+  </div>
+
+  <nav class="nav hidden" id="nav">
+    <div class="nav-in">
+      <button class="btn ghost back" type="button" id="backBtn">上一題</button>
+      <button class="btn next" type="button" id="nextBtn">下一題</button>
+    </div>
+  </nav>
+</section>
+
+<!-- ========== 後台（網址加 #admin） ========== -->
+<div class="wrap hidden" id="wrap">
+  <a class="back-link" href="#" id="toForm">← 回到表單</a>
+  <!-- ========== 後台 ========== -->
+  <section id="admin">
+    <div class="login" id="login">
+      <h2>後台</h2>
+      <p>輸入管理密碼查看所有人的回覆</p>
+      <input type="password" id="pw" autocomplete="current-password" placeholder="管理密碼">
+      <button class="btn" id="loginBtn">查看回覆</button>
+      <p class="err" id="loginErr" style="display:none"></p>
+    </div>
+
+    <div id="dash" class="hidden">
+      <div class="adm-head">
+        <h2>回覆總覽 <span id="count" style="color:var(--soft);font-size:1rem"></span></h2>
+        <div class="actions">
+          <button class="btn ghost" id="refresh">重新整理</button>
+          <button class="btn ghost" id="csv">匯出 CSV</button>
+          <button class="btn ghost" id="logout">登出</button>
+        </div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="subtabs" role="tablist">
+        <button role="tab" aria-selected="true" data-view="table">總覽表</button>
+        <button role="tab" aria-selected="false" data-view="byq">依題目</button>
+        <button role="tab" aria-selected="false" data-view="diet">飲食禁忌</button>
+        <button role="tab" aria-selected="false" data-view="car">交通分配</button>
+      </div>
+      <div class="panel" id="view"></div>
+    </div>
+  </section>
+</div>
+
+<div class="lightbox" id="lightbox"><img alt=""></div>
+
+<script>
+/* ===================== 設定區 ===================== */
+const CONFIG = {
+  // 部署 Apps Script 後拿到的網址（結尾是 /exec）
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxtXe0FKaZPrKeXbZAR3_b1GkiMY4kCNLt2q1QbUSLsNZTbaPLjxVAu2FJ6F4YWn_HI/exec",
+  TITLE: "228 南投包棟小旅行",
+  SUBTITLE: "一起吃・一起玩・一起放鬆",
+  // 開場頁的行程圖（放圖片網址；留空就不顯示）
+  INTRO_IMAGE: "",
+  // 方案說明圖（放圖片網址；留空就不顯示）
+  PLAN_IMAGE: "",
+  PLANS: [
+    { value: "A", label: "方案 A", desc: "" },
+    { value: "B", label: "方案 B", desc: "" },
+    { value: "C", label: "方案 C", desc: "" },
+  ],
+};
+/* ================================================ */
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- 初始化 ---------- */
+$("#title").textContent = CONFIG.TITLE;
+$("#topTitle").textContent = CONFIG.TITLE;
+$("#subtitle").textContent = CONFIG.SUBTITLE;
+document.title = CONFIG.TITLE;
+if (!CONFIG.SCRIPT_URL) $("#cfgNotice").classList.remove("hidden");
+if (CONFIG.INTRO_IMAGE) { const im = $("#introImg"); im.src = CONFIG.INTRO_IMAGE; im.classList.remove("hidden"); im.onclick = () => { $("#lightbox img").src = CONFIG.INTRO_IMAGE; $("#lightbox").classList.add("on"); }; }
+if (CONFIG.PLAN_IMAGE) { const im = $("#planImg"); im.src = CONFIG.PLAN_IMAGE; im.classList.remove("hidden"); }
+else $("#planHint").textContent = "選一個你最想去的";
+$("#planChips").innerHTML = CONFIG.PLANS.map((p, i) =>
+  `<input type="radio" name="plan" id="p${i}" value="${esc(p.value)}"><label for="p${i}"><span>${esc(p.label)}${p.desc ? `<span class="plan-desc">${esc(p.desc)}</span>` : ""}</span></label>`
+).join("");
+
+/* ---------- 前台／後台切換（網址 #admin） ---------- */
+function route() {
+  const admin = location.hash === "#admin";
+  $("#fill").classList.toggle("hidden", admin);
+  $("#wrap").classList.toggle("hidden", !admin);
+}
+window.addEventListener("hashchange", route); route();
+$("#toForm").onclick = e => { e.preventDefault(); history.replaceState(null, "", location.pathname + location.search); route(); };
+
+/* ---------- 一題一頁 ---------- */
+const ORDER = ["intro", "name", "comp", "kids", "transport", "diet", "breakfast", "drink", "plan", "review", "done"];
+const QSTEPS = ORDER.slice(1, 9);
+let cur = 0, fromReview = false;
+const radioVal = n => (document.querySelector(`input[name="${n}"]:checked`) || {}).value || "";
+const stepEl = k => document.querySelector(`.step[data-step="${k}"]`);
+
+function go(i, dir = 1) {
+  $$(".step").forEach(s => s.classList.remove("on"));
+  const key = ORDER[i], el = stepEl(key), qi = QSTEPS.indexOf(key);
+  el.style.setProperty("--dx", dir > 0 ? "28px" : "-28px");
+  el.classList.add("on"); cur = i;
+  if (key === "review") { fromReview = false; renderReview(); }
+
+  $("#top").classList.toggle("hidden", key === "intro");
+  $("#nav").classList.toggle("hidden", key === "intro" || key === "done");
+  $("#bar").style.width = qi >= 0 ? ((qi + 1) / (QSTEPS.length + 1) * 100) + "%" : "100%";
+  $("#stepCount").textContent = qi >= 0 ? `${qi + 1} / ${QSTEPS.length}` : key === "review" ? "最後確認" : "完成";
+  $("#nextBtn").textContent = key === "review" ? "送出" : fromReview ? "回到確認" : "下一題";
+  $("#backBtn").textContent = fromReview ? "取消" : "上一題";
+  window.scrollTo(0, 0);
+
+  const txt = el.querySelector('input[type=text]');
+  if (txt && dir > 0) setTimeout(() => txt.focus({ preventScroll: true }), 300);
+}
+
+function validate(key) {
+  const d = getData();
+  const ok = {
+    name: !!d.name,
+    kids: d.kids !== "有帶小孩" || (d.kidsBed + d.kidsNoBed) > 0,
+    transport: !!d.transport && (d.transport !== "自行開車，可載人" || +d.seats > 0) && (d.transport !== "其他" || !!d.transportOther),
+    breakfast: !!d.breakfast, drink: !!d.drink, plan: !!d.plan,
+  }[key];
+  const valid = ok === undefined ? true : ok;
+  stepEl(key).classList.toggle("invalid", !valid);
+  return valid;
+}
+
+function next() {
+  const key = ORDER[cur];
+  if (key === "review") return submit();
+  if (!validate(key)) return;
+  if (fromReview) return go(ORDER.indexOf("review"));
+  go(cur + 1);
+}
+function back() {
+  if (fromReview) return go(ORDER.indexOf("review"), -1);
+  go(cur - 1, -1);
+}
+$("#startBtn").onclick = () => go(1);
+$("#nextBtn").onclick = next;
+$("#backBtn").onclick = back;
+$("#again").onclick = () => go(ORDER.indexOf("review"), -1);
+
+// Enter 跳下一題（注意中文輸入法選字時的 Enter 不觸發）
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter" || e.isComposing || e.keyCode === 229) return;
+  if (e.target.matches('#fill input[type=text], #fill input[type=number]')) { e.preventDefault(); e.target.blur(); next(); }
+});
+
+// 選項變更：顯示補充欄位（不自動跳題）
+document.addEventListener("change", e => {
+  const t = e.target; if (t.type !== "radio") return;
+  if (t.name === "kids") $("#kidsSub").classList.toggle("on", t.value === "有帶小孩");
+  if (t.name === "transport") {
+    $("#seatsSub").classList.toggle("on", t.value === "自行開車，可載人");
+    $("#otherSub").classList.toggle("on", t.value === "其他");
+    if (t.value === "自行開車，可載人") setTimeout(() => $("#f-seats").focus({ preventScroll: true }), 50);
+    if (t.value === "其他") setTimeout(() => $("#f-other").focus({ preventScroll: true }), 50);
+  }
+  t.closest(".step").classList.remove("invalid");
+});
+$("#f-name").addEventListener("input", () => stepEl("name").classList.remove("invalid"));
+
+function getData() {
+  const d = {
+    name: $("#f-name").value.trim(),
+    companions: $("#f-comp").value.trim(),
+    kids: radioVal("kids"), kidsBed: "", kidsNoBed: "",
+    transport: radioVal("transport"), seats: "", transportOther: "",
+    diet: $("#f-diet").value.trim(),
+    breakfast: radioVal("breakfast"), drink: radioVal("drink"), plan: radioVal("plan"),
+  };
+  if (d.kids === "有帶小孩") { d.kidsBed = +$("#f-bed").value || 0; d.kidsNoBed = +$("#f-nobed").value || 0; }
+  if (d.transport === "自行開車，可載人") d.seats = $("#f-seats").value;
+  if (d.transport === "其他") d.transportOther = $("#f-other").value.trim();
+  return d;
+}
+
+function renderReview() {
+  const d = getData();
+  const plan = CONFIG.PLANS.find(p => p.value === d.plan);
+  const rows = [
+    ["name", "姓名", d.name],
+    ["comp", "攜伴", d.companions],
+    ["kids", "小朋友", d.kids === "有帶小孩" ? `佔床 ${d.kidsBed}／不佔床 ${d.kidsNoBed}` : d.kids],
+    ["transport", "前往方式", d.transport + (d.seats ? `（空位 ${d.seats}）` : "") + (d.transportOther ? `：${d.transportOther}` : "")],
+    ["diet", "飲食禁忌", d.diet],
+    ["breakfast", "早餐", d.breakfast],
+    ["drink", "酒水", d.drink],
+    ["plan", "最後一天", plan ? plan.label : ""],
+  ];
+  $("#review").innerHTML = rows.map(([k, t, v], i) =>
+    `<button type="button" class="rv c-${["green","blue","clay"][i%3]}" data-k="${k}"><small>${t}</small><span class="${v ? "" : "none"}">${esc(v || "未填")}</span></button>`).join("");
+  $$(".rv").forEach(b => b.onclick = () => { fromReview = true; go(ORDER.indexOf(b.dataset.k)); });
+}
+
+async function submit() {
+  const d = getData();
+  const bad = QSTEPS.find(k => !validate(k));
+  if (bad) { fromReview = true; return go(ORDER.indexOf(bad)); }
+  if (!CONFIG.SCRIPT_URL) { alert("尚未設定 Apps Script 網址"); return; }
+  const btn = $("#nextBtn"); btn.disabled = true; btn.textContent = "送出中…";
+  try {
+    const res = await fetch(CONFIG.SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(d) });
+    const r = await res.json();
+    if (!r.ok) throw new Error(r.error || "送出失敗");
+    $("#doneTitle").textContent = r.updated ? `${d.name}，已更新你的答案` : `${d.name}，收到了！`;
+    go(ORDER.indexOf("done"));
+  } catch (err) {
+    alert("送出失敗：" + err.message + "\n請檢查網路後再試一次。");
+  } finally { btn.disabled = false; if (ORDER[cur] === "review") btn.textContent = "送出"; }
+}
+
+/* ---------- 圖片放大 ---------- */
+$("#planImg").onclick = () => { $("#lightbox img").src = CONFIG.PLAN_IMAGE; $("#lightbox").classList.add("on"); };
+$("#lightbox").onclick = () => $("#lightbox").classList.remove("on");
+
+/* ================= 後台 ================= */
+let ROWS = [], VIEW = "table";
+const ss = { get: k => { try { return sessionStorage.getItem(k); } catch { return null; } },
+             set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} },
+             del: k => { try { sessionStorage.removeItem(k); } catch {} } };
+
+// 欄位：表頭名稱 → 顯示用
+const COLS = [
+  { k: "姓名", t: "姓名" },
+  { k: "攜伴", t: "攜伴" },
+  { k: "小孩", t: "小朋友", f: r => r["小孩"] === "有帶小孩" ? `佔床 ${r["佔床人數"] || 0}／不佔床 ${r["不佔床人數"] || 0}` : (r["小孩"] || "") },
+  { k: "前往方式", t: "前往方式", f: r => r["前往方式"] + (r["空位數"] ? `（空位 ${r["空位數"]}）` : "") + (r["其他說明"] ? `：${r["其他說明"]}` : "") },
+  { k: "飲食禁忌", t: "飲食禁忌", wrap: true },
+  { k: "早餐", t: "早餐" },
+  { k: "酒水", t: "酒水" },
+  { k: "最後一天", t: "最後一天" },
+  { k: "更新時間", t: "更新時間" },
+];
+const cell = (r, c) => c.f ? c.f(r) : (r[c.k] ?? "");
+const people = r => 1 + String(r["攜伴"] || "").split(/[、,，\/\s]+/).filter(Boolean).length;
+
+async function load(pw) {
+  const res = await fetch(CONFIG.SCRIPT_URL + "?key=" + encodeURIComponent(pw));
+  const r = await res.json();
+  if (!r.ok) throw new Error(r.error || "讀取失敗");
+  ROWS = r.rows;
+}
+async function login(pw, silent) {
+  if (!CONFIG.SCRIPT_URL) { $("#loginErr").textContent = "尚未設定 Apps Script 網址"; $("#loginErr").style.display = "block"; return; }
+  const btn = $("#loginBtn"); btn.disabled = true; btn.textContent = "讀取中…";
+  try {
+    await load(pw); ss.set("adminpw", pw);
+    $("#login").classList.add("hidden"); $("#dash").classList.remove("hidden"); $("#wrap").classList.add("wide");
+    render();
+  } catch (err) {
+    ss.del("adminpw");
+    if (!silent) { $("#loginErr").textContent = err.message; $("#loginErr").style.display = "block"; }
+  } finally { btn.disabled = false; btn.textContent = "查看回覆"; }
+}
+$("#loginBtn").onclick = () => login($("#pw").value);
+$("#pw").addEventListener("keydown", e => { if (e.key === "Enter") login($("#pw").value); });
+$("#refresh").onclick = async () => { const b = $("#refresh"); b.disabled = true; try { await load(ss.get("adminpw")); render(); } catch (e) { alert(e.message); } b.disabled = false; };
+$("#logout").onclick = () => { ss.del("adminpw"); ROWS = []; $("#dash").classList.add("hidden"); $("#login").classList.remove("hidden"); $("#wrap").classList.remove("wide"); $("#pw").value = ""; };
+$$(".subtabs button").forEach(b => b.onclick = () => { VIEW = b.dataset.view; $$(".subtabs button").forEach(x => x.setAttribute("aria-selected", x === b)); renderView(); });
+if (ss.get("adminpw")) login(ss.get("adminpw"), true);
+
+function render() {
+  $("#count").textContent = `共 ${ROWS.length} 份`;
+  const sum = (fn) => ROWS.reduce((a, r) => a + fn(r), 0);
+  const total = sum(people);
+  const bed = sum(r => +r["佔床人數"] || 0), nobed = sum(r => +r["不佔床人數"] || 0);
+  const seats = sum(r => +r["空位數"] || 0);
+  const needRide = sum(r => r["前往方式"] === "高鐵台中站，需共乘" ? people(r) : 0);
+  const bf = sum(r => r["早餐"] === "完全不吃" ? 0 : people(r));
+  const drink = ROWS.filter(r => r["酒水"] === "喝！").length;
+  const plans = CONFIG.PLANS.map(p => `${p.value} ${ROWS.filter(r => r["最後一天"] === p.value).length}`).join("／");
+  const s = [
+    ["var(--butter)", total, "本人＋攜伴人數"],
+    ["var(--sky)", `${bed}／${nobed}`, "小孩 佔床／不佔床"],
+    ["var(--mint)", `${seats}／${needRide}`, "可載空位／需共乘人數"],
+    ["var(--peach)", bf, "早餐份數（不含完全不吃）"],
+    ["var(--lilac)", drink, "要喝酒的填答者"],
+    ["var(--lilac)", plans, "最後一天票數"],
+  ];
+  $("#stats").innerHTML = s.map(([c, v, l]) => `<div class="stat" style="background:${c}"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("");
+  renderView();
+}
+
+function renderView() {
+  const v = $("#view");
+  if (!ROWS.length) { v.innerHTML = `<div class="empty">還沒有人填寫。把網址傳給大家吧！</div>`; return; }
+
+  if (VIEW === "table") {
+    v.innerHTML = `<div class="scroll"><table><thead><tr>${COLS.map(c => `<th>${c.t}</th>`).join("")}</tr></thead><tbody>${
+      ROWS.map(r => `<tr>${COLS.map(c => `<td${c.wrap ? ' class="wrap-cell"' : ""}>${esc(cell(r, c))}</td>`).join("")}</tr>`).join("")
+    }</tbody></table></div>`;
+  }
+
+  if (VIEW === "byq") {
+    const qs = COLS.filter(c => c.k !== "姓名" && c.k !== "更新時間");
+    v.innerHTML = `<select id="qsel" style="margin-bottom:14px">${qs.map((c, i) => `<option value="${i}">${c.t}</option>`).join("")}</select><div id="qout"></div>`;
+    const draw = () => {
+      const c = qs[$("#qsel").value];
+      // 依答案分組
+      const groups = {};
+      ROWS.forEach(r => { const a = cell(r, c) || "（未填）"; (groups[a] ||= []).push(r["姓名"]); });
+      const isChoice = ["前往方式", "早餐", "酒水", "最後一天"].includes(c.k);
+      $("#qout").innerHTML = isChoice
+        ? Object.entries(groups).sort((a, b) => b[1].length - a[1].length).map(([a, ns]) =>
+            `<div class="group"><h4>${esc(a)}（${ns.length}）</h4>${ns.map(n => `<span class="pill">${esc(n)}</span>`).join("")}</div>`).join("")
+        : `<div class="qlist">${ROWS.map(r => { const a = cell(r, c); return `<div class="qitem${a ? "" : " blank"}"><span class="n">${esc(r["姓名"])}</span><span>${esc(a || "（未填）")}</span></div>`; }).join("")}</div>`;
+    };
+    $("#qsel").onchange = draw; draw();
+  }
+
+  if (VIEW === "diet") {
+    const list = ROWS.filter(r => String(r["飲食禁忌"] || "").trim());
+    v.innerHTML = list.length
+      ? `<div class="qlist">${list.map(r => `<div class="qitem"><span class="n">${esc(r["姓名"])}</span><span>${esc(r["飲食禁忌"])}${r["攜伴"] ? `<br><span style="color:var(--soft);font-size:.85rem">同行：${esc(r["攜伴"])}</span>` : ""}</span></div>`).join("")}</div>`
+      : `<div class="empty">目前沒有人填飲食禁忌</div>`;
+  }
+
+  if (VIEW === "car") {
+    const g = (t) => ROWS.filter(r => r["前往方式"] === t);
+    const line = r => `<div class="qitem"><span class="n">${esc(r["姓名"])}</span><span>${people(r)} 人${r["空位數"] ? `・空位 ${esc(r["空位數"])}` : ""}${r["其他說明"] ? `・${esc(r["其他說明"])}` : ""}${r["攜伴"] ? `<br><span style="color:var(--soft);font-size:.85rem">同行：${esc(r["攜伴"])}</span>` : ""}</span></div>`;
+    const sec = (t, title) => { const l = g(t); return `<div class="group"><h4>${title}（${l.length}）</h4><div class="qlist">${l.length ? l.map(line).join("") : `<div class="qitem blank">無</div>`}</div></div>`; };
+    v.innerHTML = sec("自行開車，可載人", "可載人的車主") + sec("高鐵台中站，需共乘", "高鐵台中站需共乘") + sec("自行開車，不便載人", "自行開車不載人") + sec("其他", "其他");
+  }
+}
+
+$("#csv").onclick = () => {
+  const head = ["更新時間", "姓名", "攜伴", "小孩", "佔床人數", "不佔床人數", "前往方式", "空位數", "其他說明", "飲食禁忌", "早餐", "酒水", "最後一天"];
+  const q = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
+  const csv = "\uFEFF" + [head.map(q).join(","), ...ROWS.map(r => head.map(h => q(r[h])).join(","))].join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = `${CONFIG.TITLE}-回覆.csv`; a.click();
+};
+</script>
+</body>
+</html>
