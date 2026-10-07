@@ -278,11 +278,11 @@ tr:last-child td{border-bottom:0}
       <span class="qno">Q6 / 10</span>
       <h2><label for="f-diet">飲食調整</label><span class="req">*</span></h2>
       <p class="hint">例：不吃牛／海鮮過敏／素食<br>及小朋友飲食是否有需要注意什麼</p>
-      <div class="chips">
-        <input type="checkbox" id="dietNone"><label for="dietNone">無</label>
-      </div>
       <textarea id="f-diet"></textarea>
-      <div class="err">請填寫飲食調整，或勾選「無」</div>
+      <div class="chips" style="margin-top:14px">
+        <input type="checkbox" id="dietNone"><label for="dietNone">無需調整</label>
+      </div>
+      <div class="err">請填寫飲食調整，或勾選「無需調整」</div>
     </div>
 
     <div class="step c-clay" data-step="breakfast">
@@ -569,7 +569,7 @@ function applyData(d) {
   $("#f-seats").value = d.seats || ""; $("#f-other").value = d.transportOther || "";
   $("#seatsSub").classList.toggle("on", d.transport === "自行開車，可載人");
   $("#otherSub").classList.toggle("on", d.transport === "其他");
-  $("#f-diet").value = d.diet || ""; $("#dietNone").checked = d.diet === "無"; $("#f-diet").disabled = d.diet === "無";
+  $("#f-diet").value = d.diet || ""; $("#dietNone").checked = d.diet === "無需調整"; $("#f-diet").disabled = d.diet === "無需調整";
   perParse("breakfast", d.breakfast, d.name); perParse("drink", d.drink, d.name);
   perParse("lunch", d.lunch, d.name);
   setRadio("plan", String(d.plan || ""));
@@ -608,11 +608,11 @@ document.addEventListener("change", e => {
 $("#f-name").addEventListener("input", () => stepEl("name").classList.remove("invalid"));
 $("#f-city").addEventListener("input", () => stepEl("city").classList.remove("invalid"));
 $("#dietNone").addEventListener("change", () => {
-  if ($("#dietNone").checked) { $("#f-diet").value = "無"; $("#f-diet").disabled = true; }
+  if ($("#dietNone").checked) { $("#f-diet").value = "無需調整"; $("#f-diet").disabled = true; }
   else { $("#f-diet").value = ""; $("#f-diet").disabled = false; $("#f-diet").focus(); }
   stepEl("diet").classList.remove("invalid");
 });
-$("#f-diet").addEventListener("input", () => { if ($("#f-diet").value !== "無") $("#dietNone").checked = false; stepEl("diet").classList.remove("invalid"); });
+$("#f-diet").addEventListener("input", () => { if ($("#f-diet").value !== "無需調整") $("#dietNone").checked = false; stepEl("diet").classList.remove("invalid"); });
 
 function getData() {
   const d = {
@@ -685,7 +685,7 @@ const ss = { get: k => { try { return sessionStorage.getItem(k); } catch { retur
 const COLS = [
   { k: "姓名", t: "姓名" },
   { k: "攜伴", t: "攜伴" },
-  { k: "小孩", t: "小朋友", f: r => r["小孩"] === "有帶小孩" ? (r["小孩佔床"] || "有帶小孩") : (r["小孩"] || "") },
+  { k: "小孩", t: "小朋友", f: r => r["小孩"] === "有帶小孩" ? `${r["小孩佔床"] || "有帶小孩"}${r["小孩人數"] ? `，${r["小孩人數"]}位` : ""}${r["小孩年齡"] ? `，${r["小孩年齡"]}` : ""}` : (r["小孩"] || "") },
   { k: "出發縣市", t: "出發縣市" },
   { k: "前往方式", t: "前往方式", f: r => r["前往方式"] + (r["空位數"] ? `（空位 ${r["空位數"]}）` : "") + (r["其他說明"] ? `：${r["其他說明"]}` : "") },
   { k: "飲食禁忌", t: "飲食禁忌", wrap: true },
@@ -734,14 +734,22 @@ function render() {
   const needRide = sum(r => r["前往方式"] === "高鐵台中站，需共乘" ? people(r) : 0);
   const bf = ROWS.flatMap(r => perPerson(r, "早餐")).filter(x => x.a !== "完全不吃").length;
   const drink = ROWS.flatMap(r => perPerson(r, "酒水")).filter(x => x.a === "喝！").length;
-  const plans = CONFIG.PLANS.map(p => `${p.value} ${ROWS.filter(r => r["最後一天"] === p.value).length}`).join("／");
+  const kidsTotal = sum(r => r["小孩"] === "有帶小孩" ? (+r["小孩人數"] || 1) : 0);
+  const dietNeed = ROWS.filter(r => r["飲食禁忌"] && r["飲食禁忌"] !== "無需調整").length;
+  const lunchAns = ROWS.flatMap(r => perPerson(r, "Day2午餐偏好"));
+  const lunchCook = lunchAns.filter(x => x.a === "大廚二廚" || x.a === "助手評審").length;
+  const lunchPizza = lunchAns.filter(x => x.a === "披薩").length;
+  const planOK = ROWS.filter(r => r["最後一天"] === "OK").length;
   const s = [
     ["var(--butter)", total, "本人＋攜伴人數"],
+    ["var(--sky)", kidsTotal, "小孩總人數"],
     ["var(--sky)", `${bed}／${nobed}`, "小孩 佔床／不佔床"],
     ["var(--mint)", `${seats}／${needRide}`, "可載空位／需共乘人數"],
     ["var(--peach)", bf, "早餐份數（不含完全不吃）"],
+    ["var(--peach)", dietNeed, "有飲食調整需求人數"],
     ["var(--lilac)", drink, "要喝酒人數"],
-    ["var(--lilac)", plans, "Day3行程票數"],
+    ["var(--lilac)", `${lunchCook}／${lunchPizza}`, "Day2 黑白煮大廚／披薩人數"],
+    ["var(--lilac)", planOK, "Day3行程已確認人數"],
   ];
   $("#stats").innerHTML = s.map(([c, v, l]) => `<div class="stat" style="background:${c}"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("");
   renderView();
@@ -762,7 +770,7 @@ function renderView() {
     const plabel = v => (CONFIG.PLANS.find(p => p.value === String(v)) || {}).label || v;
     const QS = [
       { t: "攜伴姓名／綽號", text: true, e: r => one(r, r["攜伴"]) },
-      { t: "小朋友是否佔床", e: r => one(r, r["小孩"] === "有帶小孩" ? r["小孩佔床"] : r["小孩"]) },
+      { t: "小朋友人數／年齡／佔床", e: r => one(r, r["小孩"] === "有帶小孩" ? `${r["小孩佔床"] || ""}${r["小孩人數"] ? `，${r["小孩人數"]}位` : ""}${r["小孩年齡"] ? `，${r["小孩年齡"]}` : ""}` : r["小孩"]) },
       { t: "從哪個縣市過去南投", text: true, e: r => one(r, r["出發縣市"]) },
       { t: "預計前往方式", e: r => [{ n: r["姓名"] + (r["空位數"] ? `（空位 ${r["空位數"]}）` : "") + (r["其他說明"] ? `（${r["其他說明"]}）` : ""), a: r["前往方式"] }] },
       { t: "飲食禁忌或過敏", text: true, e: r => one(r, r["飲食禁忌"]) },
@@ -805,7 +813,7 @@ function renderView() {
 }
 
 $("#csv").onclick = () => {
-  const head = ["更新時間", "姓名", "攜伴", "小孩", "小孩佔床", "出發縣市", "前往方式", "空位數", "其他說明", "飲食禁忌", "早餐", "酒水", "Day2午餐偏好", "最後一天"];
+  const head = ["更新時間", "姓名", "攜伴", "小孩", "小孩佔床", "小孩人數", "小孩年齡", "出發縣市", "前往方式", "空位數", "其他說明", "飲食禁忌", "早餐", "酒水", "Day2午餐偏好", "最後一天"];
   const q = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
   const csv = "\uFEFF" + [head.map(q).join(","), ...ROWS.map(r => head.map(h => q(r[h])).join(","))].join("\r\n");
   const a = document.createElement("a");
